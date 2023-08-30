@@ -5,12 +5,13 @@ dotenv.config();
 
 import { StatusTypes } from './src/enums/statusTypes';
 import { Tour } from './src/interfaces/tour';
+import { Request, Response } from 'express';
 
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, 'utf-8')
 ) as Tour[];
 
-app.get('/api/v1/tours', (_, res) => {
+function getTours(_: Request, res: Response) {
   res.send({
     status: StatusTypes.success,
     count: tours.length,
@@ -18,9 +19,9 @@ app.get('/api/v1/tours', (_, res) => {
       tours,
     },
   });
-});
+}
 
-app.get('/api/v1/tours/:id', (req, res) => {
+function getTourById(req: Request, res: Response) {
   const tour = tours.find((tour) => tour.id === +req.params.id);
 
   if (!tour) {
@@ -36,15 +37,15 @@ app.get('/api/v1/tours/:id', (req, res) => {
       tour,
     },
   });
-});
+}
 
-app.post('/api/v1/tours', async (req, res) => {
+function postTour(req: Request, res: Response) {
   const newId = tours[tours.length - 1].id + 1;
   const newTour = Object.assign({ id: newId }, req.body);
 
   tours.push(newTour);
 
-  await fs.writeFile(
+  fs.writeFile(
     `${__dirname}/dev-data/data/tours-simple.json`,
     JSON.stringify(tours),
     (err) => {
@@ -62,9 +63,9 @@ app.post('/api/v1/tours', async (req, res) => {
       });
     }
   );
-});
+}
 
-app.patch('/api/v1/tours/:id', (req, res) => {
+function updateTour(req: Request, res: Response) {
   const tour = tours.find((tour) => tour.id === +req.params.id);
 
   if (!tour) {
@@ -80,7 +81,28 @@ app.patch('/api/v1/tours/:id', (req, res) => {
       tour,
     },
   });
-});
+}
+
+function deleteTour(req: Request, res: Response) {
+  const tour = tours.find((tour) => tour.id === +req.params.id);
+
+  if (!tour) {
+    return res.status(404).send({
+      status: StatusTypes.failed,
+      message: 'Not found',
+    });
+  }
+
+  res.status(204).send(null);
+}
+
+app.route('/api/v1/tours').get(getTours).post(postTour);
+
+app
+  .route('/api/v1/tours/:id')
+  .get(getTourById)
+  .patch(updateTour)
+  .delete(deleteTour);
 
 app.get('*', (req, res) => {
   res.status(404).send('Not found');
