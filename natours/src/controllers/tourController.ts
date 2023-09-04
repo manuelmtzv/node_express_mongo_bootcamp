@@ -1,8 +1,8 @@
 import fs from 'fs';
-import { Request, Response } from 'express';
+import { type Request, type Response } from 'express';
 import { StatusTypes } from '../enums/statusTypes';
 
-import { tours } from '../..';
+import { tours } from '@/data/tours';
 
 const tourController = {
   getTours(_: Request, res: Response) {
@@ -18,7 +18,7 @@ const tourController = {
   getTourById(req: Request, res: Response) {
     const tour = tours.find((tour) => tour.id === +req.params.id);
 
-    if (!tour) {
+    if (tour === undefined) {
       return res.status(404).send({
         status: StatusTypes.failed,
         message: 'Not found',
@@ -33,17 +33,17 @@ const tourController = {
     });
   },
 
-  postTour(req: Request, res: Response) {
+  createTour(req: Request, res: Response) {
     const newId = tours[tours.length - 1].id + 1;
     const newTour = Object.assign({ id: newId }, req.body);
 
     tours.push(newTour);
 
     fs.writeFile(
-      `${__dirname}/dev-data/data/tours-simple.json`,
+      `@root/dev-data/data/tours-simple.json`,
       JSON.stringify(tours),
       (err) => {
-        if (err)
+        if (err != null)
           return res.status(500).send({
             status: StatusTypes.failed,
             message: err?.message,
@@ -55,14 +55,14 @@ const tourController = {
             tour: newTour,
           },
         });
-      }
+      },
     );
   },
 
   updateTour(req: Request, res: Response) {
     const tour = tours.find((tour) => tour.id === +req.params.id);
 
-    if (!tour) {
+    if (tour === undefined) {
       return res.status(404).send({
         status: StatusTypes.failed,
         message: 'Not found',
@@ -80,7 +80,7 @@ const tourController = {
   deleteTour(req: Request, res: Response) {
     const tour = tours.find((tour) => tour.id === +req.params.id);
 
-    if (!tour) {
+    if (tour === undefined) {
       return res.status(404).send({
         status: StatusTypes.failed,
         message: 'Not found',
@@ -88,6 +88,18 @@ const tourController = {
     }
 
     res.status(204).send(null);
+  },
+  validateCreateTour(req: Request, res: Response, next: () => void) {
+    const { name, price } = req.body;
+
+    if (name !== undefined || price !== undefined) {
+      return res.status(400).send({
+        status: StatusTypes.failed,
+        message: 'Missing name or price',
+      });
+    }
+
+    next();
   },
 };
 
