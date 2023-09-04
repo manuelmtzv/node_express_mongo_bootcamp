@@ -1,7 +1,6 @@
 import 'tsconfig-paths/register';
 import 'dotenv/config';
 import '@/db';
-import '@/schemas/TourSchema';
 import app from './src/app';
 
 app.listen(process.env.APP_PORT ?? 4000, () => {

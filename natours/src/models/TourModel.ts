@@ -13,12 +13,4 @@ const TourSchema = new Schema<ITour>({
 
 const Tour = mongoose.model<ITour>('Tour', TourSchema);
 
-const testTour = new Tour({
-  name: 'The Park Camper',
-  rating: 4.7,
-  price: 997,
-});
-
-console.log(testTour);
-
 export default Tour;

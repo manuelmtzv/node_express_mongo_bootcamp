@@ -1,80 +1,79 @@
-import fs from 'fs';
 import { type Request, type Response } from 'express';
 import { StatusTypes } from '../enums/statusTypes';
+import Tour from '@/models/TourModel';
+import type { ITour } from '@/interfaces/tour';
 
-import { tours } from '@/data/tours';
+// import { tours } from '@/data/tours';
+
+const tours = Array<ITour>();
 
 const tourController = {
-  getTours(_: Request, res: Response) {
-    res.send({
-      status: StatusTypes.success,
-      count: tours.length,
-      data: {
-        tours,
-      },
-    });
-  },
+  async getTours(_: Request, res: Response) {
+    try {
+      const tours = await Tour.find();
 
-  getTourById(req: Request, res: Response) {
-    const tour = tours.find((tour) => tour.id === +req.params.id);
-
-    if (tour === undefined) {
-      return res.status(404).send({
+      res.status(200).send({
+        status: StatusTypes.success,
+        results: tours.length,
+        data: {
+          tours,
+        },
+      });
+    } catch (err: any) {
+      res.status(404).send({
         status: StatusTypes.failed,
-        message: 'Not found',
+        message: err.message,
       });
     }
-
-    res.send({
-      status: StatusTypes.success,
-      data: {
-        tour,
-      },
-    });
   },
 
-  createTour(req: Request, res: Response) {
-    const newId = tours[tours.length - 1].id + 1;
-    const newTour = Object.assign({ id: newId }, req.body);
+  async getTourById(req: Request, res: Response) {
+    try {
+      const tour = await Tour.findById(req.params.id);
 
-    tours.push(newTour);
-
-    fs.writeFile(
-      `@root/dev-data/data/tours-simple.json`,
-      JSON.stringify(tours),
-      (err) => {
-        if (err != null)
-          return res.status(500).send({
-            status: StatusTypes.failed,
-            message: err?.message,
-          });
-
-        res.status(201).send({
-          status: StatusTypes.success,
-          data: {
-            tour: newTour,
-          },
-        });
-      },
-    );
-  },
-
-  updateTour(req: Request, res: Response) {
-    const tour = tours.find((tour) => tour.id === +req.params.id);
-
-    if (tour === undefined) {
-      return res.status(404).send({
+      res.status(200).send({ status: StatusTypes.success, data: { tour } });
+    } catch (err: any) {
+      res.status(404).send({
         status: StatusTypes.failed,
-        message: 'Not found',
+        message: err.message,
       });
     }
+  },
 
-    res.status(200).send({
-      status: StatusTypes.success,
-      data: {
-        tour,
-      },
-    });
+  async createTour(req: Request, res: Response): Promise<void> {
+    try {
+      const newTour = await Tour.create(req.body);
+
+      res.status(201).send({
+        status: StatusTypes.success,
+        data: {
+          tour: newTour,
+        },
+      });
+    } catch (err: any) {
+      res.status(400).send({
+        status: StatusTypes.failed,
+        message: err.message,
+      });
+    }
+  },
+
+  async updateTour(req: Request, res: Response) {
+    try {
+      const tour = await Tour.findByIdAndUpdate(req.params.id, req.body);
+
+      res.status(200).send({
+        status: StatusTypes.success,
+        data: {
+          tour,
+        },
+      });
+    } catch (err: any) {
+      res.status(404).send({
+        status: StatusTypes.failed,
+        message: err.message,
+      });
+    }
   },
 
   deleteTour(req: Request, res: Response) {
@@ -88,18 +87,6 @@ const tourController = {
     }
 
     res.status(204).send(null);
-  },
-  validateCreateTour(req: Request, res: Response, next: () => void) {
-    const { name, price } = req.body;
-
-    if (name !== undefined || price !== undefined) {
-      return res.status(400).send({
-        status: StatusTypes.failed,
-        message: 'Missing name or price',
-      });
-    }
-
-    next();
   },
 };
 
