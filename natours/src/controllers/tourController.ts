@@ -1,11 +1,6 @@
 import { type Request, type Response } from 'express';
 import { StatusTypes } from '../enums/statusTypes';
-import Tour from '@/models/TourModel';
-import type { ITour } from '@/interfaces/tour';
-
-// import { tours } from '@/data/tours';
-
-const tours = Array<ITour>();
+import Tour from '@/models/tourModel';
 
 const tourController = {
   async getTours(_: Request, res: Response) {
@@ -60,7 +55,10 @@ const tourController = {
 
   async updateTour(req: Request, res: Response) {
     try {
-      const tour = await Tour.findByIdAndUpdate(req.params.id, req.body);
+      const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
 
       res.status(200).send({
         status: StatusTypes.success,
@@ -76,13 +74,13 @@ const tourController = {
     }
   },
 
-  deleteTour(req: Request, res: Response) {
-    const tour = tours.find((tour) => tour.id === +req.params.id);
-
-    if (tour === undefined) {
-      return res.status(404).send({
+  async deleteTour(req: Request, res: Response) {
+    try {
+      await Tour.findByIdAndDelete(req.params.id);
+    } catch (err: any) {
+      res.status(404).send({
         status: StatusTypes.failed,
-        message: 'Not found',
+        message: err.message,
       });
     }
 
