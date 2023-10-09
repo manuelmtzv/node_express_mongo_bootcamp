@@ -6,6 +6,10 @@ const { getTours, createTour, updateTour, getTourById, deleteTour } =
 
 const router = Router();
 
+router
+  .route('/top-5-cheap')
+  .get(tourController.aliasTopTours, tourController.getTours);
+
 router.param('id', (req, res, next, val) => {
   console.log(`Tour id is: ${val}`);
   next();

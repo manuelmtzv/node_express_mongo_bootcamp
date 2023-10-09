@@ -1,13 +1,14 @@
 import mongoose, { Schema } from 'mongoose';
-import type { ITour } from '@/interfaces/tour';
+import type { ITourSimple } from '@/interfaces/tourSimple';
 
-const TourSchema = new Schema<ITour>({
+const TourSchema = new Schema<ITourSimple>({
   name: {
     type: String,
     required: [true, 'A tour must have a name'],
     unique: true,
     trim: true,
   },
+  duration: { type: Number, required: [true, 'A tour must have a duration'] },
   maxGroupSize: {
     type: Number,
     required: [true, 'A tour must have a group size'],
@@ -19,7 +20,6 @@ const TourSchema = new Schema<ITour>({
   ratingsAverage: { type: Number, default: 4.5 },
   ratingsQuantity: { type: Number, default: 0 },
   price: { type: Number, required: [true, 'A tour must have price'] },
-  discount: { type: Number },
   summary: { type: String, trim: true },
   description: { type: String, trim: true },
   imageCover: {
@@ -27,10 +27,10 @@ const TourSchema = new Schema<ITour>({
     required: [true, 'A tour must have a cover image'],
   },
   images: Array<string>,
-  createdAt: { type: Date, default: Date.now() },
   startDates: Array<Date>,
+  createdAt: { type: Date, default: Date.now(), select: false },
 });
 
-const Tour = mongoose.model<ITour>('Tour', TourSchema);
+const Tour = mongoose.model<ITourSimple>('Tour', TourSchema);
 
 export default Tour;

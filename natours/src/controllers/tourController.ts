@@ -1,11 +1,26 @@
-import { type Request, type Response } from 'express';
 import { StatusTypes } from '../enums/statusTypes';
 import Tour from '@/models/tourModel';
+import ApiFeatures from '@/utils/apiFeatures';
+
+import type { NextFunction, Request, Response } from 'express';
+import type { ITourSimple } from '@/interfaces/tourSimple';
+
+function aliasTopTours(req: Request, res: Response, next: NextFunction): void {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,difficulty';
+  next();
+}
 
 const tourController = {
-  async getTours(_: Request, res: Response) {
+  async getTours(req: Request, res: Response) {
     try {
-      const tours = await Tour.find();
+      const features = new ApiFeatures<ITourSimple>(
+        Tour.find(),
+        req.query,
+      ).execute();
+
+      const tours = await features.query;
 
       res.status(200).send({
         status: StatusTypes.success,
@@ -86,6 +101,24 @@ const tourController = {
 
     res.status(204).send(null);
   },
+
+  // async getTourStats(req: Request, res: Response) {
+  //   try {
+  //     const stats = Tour.aggregate([
+  //       {
+  //         $match: { ratingsAverage: { $gte: 4.5 } },
+  //       },
+  //     ]);
+  //   } catch (err: any) {
+  //     res.status(404).send({
+  //       status: StatusTypes.failed,
+  //       message: err.message,
+  //     });
+  //   }
+  // },
 };
 
-export default tourController;
+export default {
+  ...tourController,
+  aliasTopTours,
+};

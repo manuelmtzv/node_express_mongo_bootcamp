@@ -1,7 +1,6 @@
 import fs from 'fs';
 import mongoose from 'mongoose';
-import Tour from './../../src/models/tourModel';
-import path from 'path';
+import Tour from '@/models/tourModel';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -13,7 +12,7 @@ const mongoURI = process.env.MONGODB_URI?.replace(
 void mongoose.connect(mongoURI as string).then();
 
 const tours = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '/tours-simple.json'), 'utf-8'),
+  fs.readFileSync('dev-data/data/tours-simple.json', 'utf-8'),
 );
 
 const importData = async (): Promise<void> => {
