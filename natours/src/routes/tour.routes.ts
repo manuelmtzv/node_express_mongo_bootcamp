@@ -10,6 +10,10 @@ router
   .route('/top-5-cheap')
   .get(tourController.aliasTopTours, tourController.getTours);
 
+router.route('/stats').get(tourController.getTourStats);
+
+router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
+
 router.param('id', (req, res, next, val) => {
   console.log(`Tour id is: ${val}`);
   next();
